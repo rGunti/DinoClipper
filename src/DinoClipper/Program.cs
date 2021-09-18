@@ -2,13 +2,20 @@ using System;
 using DinoClipper.Config;
 using DinoClipper.Exceptions;
 using DinoClipper.Storage;
+using DinoClipper.TwitchApi;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PandaDotNet.Cache.Abstraction;
+using PandaDotNet.Cache.ExpiringCache;
 using PandaDotNet.DI.Configuration;
 using PandaDotNet.Repo.Drivers.LiteDB;
+using PandaDotNet.Time;
 using Serilog;
+using TwitchLib.Api;
+using TwitchLib.Api.Core;
+using TwitchLib.Api.Interfaces;
 
 namespace DinoClipper
 {
@@ -52,9 +59,31 @@ namespace DinoClipper
                 .ConfigureServices((hostContext, services) =>
                 {
                     services
+                        // Configuration
                         .AddConfigObject<DinoClipperConfiguration>("DinoClipper")
+                        // Storage
                         .AddLiteDbDriver(hostContext.Configuration.GetConnectionString("litedb"))
                         .AddSingleton<IClipRepository, ClipRepository>()
+                        // Cache
+                        .AddSingleton<IClock, Clock>()
+                        .AddSingleton<ICache<User, string>, ExpiringMemoryCache<User, string>>(s =>
+                            new ExpiringMemoryCache<User, string>(
+                                TimeSpan.FromMinutes(s.GetAppConfig().MaxCacheAge),
+                                s.GetRequiredService<IClock>()))
+                        // Twitch
+                        .AddSingleton<ITwitchAPI>(s =>
+                        {
+                            DinoClipperConfiguration cfg = s.GetAppConfig();
+                            return new TwitchAPI(settings: new ApiSettings
+                            {
+                                ClientId = cfg.Twitch?.ClientId,
+                                Secret = cfg.Twitch?.ClientSecret
+                            });
+                        })
+                        // APIs
+                        .AddSingleton<IUserApi, UserApi>()
+                        .AddSingleton<IClipApi, ClipApi>()
+                        // Worker
                         .AddHostedService<Worker>();
                 })
                 .UseSerilog((ctx, services, logConfig) => logConfig
