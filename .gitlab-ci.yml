@@ -26,8 +26,18 @@ build_docker:
     before_script:
         - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     script:
-        - tag=$(date +%Y%m%d-%H%M%S)-${CI_COMMIT_SHORT_SHA}
-        - docker build --pull -t "${CI_REGISTRY_IMAGE}:latest" -t "${CI_REGISTRY_IMAGE}:${tag}" -f src/DinoClipper/Dockerfile src
-        - docker push "${CI_REGISTRY_IMAGE}:latest" "${CI_REGISTRY_IMAGE}:${tag}"
+        # Prepare tags
+        - exact_tag=$(date +%Y%m%d-%H%M%S)-${CI_COMMIT_SHORT_SHA}
+        - todays_tag=$(date +%Y%m%d)
+        - month_tag=$(date +%Y%m)
+        - year_tag=$(date +%Y)
+        # Build Image
+        - docker build --pull -t "${CI_REGISTRY_IMAGE}:latest" -t "${CI_REGISTRY_IMAGE}:${exact_tag}" -t "${CI_REGISTRY_IMAGE}:${todays_tag}" -t "${CI_REGISTRY_IMAGE}:${month_tag}" -t "${CI_REGISTRY_IMAGE}:${year_tag}" -f src/DinoClipper/Dockerfile src
+        # Publish all tags
+        - docker push "${CI_REGISTRY_IMAGE}:latest"
+        - docker push "${CI_REGISTRY_IMAGE}:${exact_tag}"
+        - docker push "${CI_REGISTRY_IMAGE}:${todays_tag}"
+        - docker push "${CI_REGISTRY_IMAGE}:${month_tag}"
+        - docker push "${CI_REGISTRY_IMAGE}:${year_tag}"
     only:
         - master
