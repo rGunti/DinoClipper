@@ -9,6 +9,7 @@ using DinoClipper.Storage;
 using DinoClipper.TwitchApi;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PandaDotNet.Time;
 using PandaDotNet.Utils;
 
 namespace DinoClipper
@@ -76,7 +77,7 @@ namespace DinoClipper
         {
             _logger.LogInformation("Discovering clips ...");
             List<Clip> clips = (await _clipApi.GetClipsOfBroadcasterAsync(
-                _config.Twitch.ChannelId))
+                _config.Twitch.ChannelId, _newestClipFound != null ? _newestClipFound - 1.Day() : null))
                 .ToList();
 
             if (cancellationToken.IsCancellationRequested)
@@ -92,6 +93,12 @@ namespace DinoClipper
                     _logger.LogDebug("Found new clip {ClipId}", clip.Id);
                     _clipRepository.Insert(clip);
                     newClips++;
+                }
+
+                if (_newestClipFound == null || _newestClipFound < clip.CreatedAt)
+                {
+                    _logger.LogTrace("Updating date of newest found clip to {NewClipDate}", clip.CreatedAt);
+                    _newestClipFound = clip.CreatedAt;
                 }
             }
             

@@ -54,13 +54,13 @@ namespace DinoClipper.TwitchApi
 
         private async Task<GetClipsResponse> GetClips(string broadcasterId, string cursor, DateTime? startedAt)
         {
-            _logger.LogTrace("Querying clips from Twitch for Broadcaster #{Broadcaster} with Cursor {Cursor} ...",
-                broadcasterId, cursor);
+            _logger.LogTrace("Querying clips from Twitch for Broadcaster #{Broadcaster} with Cursor {Cursor} and time {StartedAt} ...",
+                broadcasterId, cursor, startedAt?.ToUniversalTime());
             return await _twitchAPI.Helix.Clips.GetClipsAsync(
                 broadcasterId: broadcasterId,
                 after: cursor,
                 first: 50,
-                startedAt: startedAt,
+                startedAt: startedAt?.ToUniversalTime(),
                 endedAt: startedAt.HasValue ? DateTime.UtcNow : null);
         }
 
