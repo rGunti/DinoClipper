@@ -16,4 +16,5 @@ RUN dotnet publish "DinoClipper.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN mkdir "/data"
 ENTRYPOINT ["dotnet", "DinoClipper.dll"]
