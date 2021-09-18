@@ -4,6 +4,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
 COPY ["DinoClipper/DinoClipper.csproj", "DinoClipper/"]
+COPY nuget.config .
 RUN dotnet restore "DinoClipper/DinoClipper.csproj"
 COPY . .
 WORKDIR "/src/DinoClipper"
