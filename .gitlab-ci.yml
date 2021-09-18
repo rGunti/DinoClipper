@@ -11,7 +11,7 @@ build:
         - "dotnet build src/DinoClipper.sln"
     artifacts:
       paths:
-        - bin/
+        - src/DinoClipper/DinoClipper/bin
 
 test:
     stage: test
