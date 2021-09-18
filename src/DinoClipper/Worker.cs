@@ -9,6 +9,7 @@ using DinoClipper.Storage;
 using DinoClipper.TwitchApi;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PandaDotNet.Cache.Abstraction;
 using PandaDotNet.Time;
 using PandaDotNet.Utils;
 
@@ -20,6 +21,7 @@ namespace DinoClipper
         private readonly DinoClipperConfiguration _config;
         private readonly IClipRepository _clipRepository;
         private readonly IClipApi _clipApi;
+        private readonly ICache<User, string> _userCache;
 
         private DateTime? _newestClipFound = null;
 
@@ -27,12 +29,14 @@ namespace DinoClipper
             ILogger<Worker> logger,
             DinoClipperConfiguration config,
             IClipRepository clipRepository,
-            IClipApi clipApi)
+            IClipApi clipApi,
+            ICache<User, string> userCache)
         {
             _logger = logger;
             _config = config;
             _clipRepository = clipRepository;
             _clipApi = clipApi;
+            _userCache = userCache;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -71,13 +75,48 @@ namespace DinoClipper
         {
             _logger.LogDebug("Ensuring Temp directory {TempDir} exists", _config.TempStorage);
             _config.TempStorage?.EnsureDirectoryExists();
+
+            if (_config.RestoreDateFilter)
+            {
+                _logger.LogInformation("Restoring date filter from database ...");
+                _newestClipFound = _clipRepository.GetDateOfNewestClip(_config.Twitch.ChannelId);
+                
+                _logger.LogTrace("Restored date filter to {NewClipDate}", _newestClipFound);
+            }
+
+            if (_config.RestoreCacheFromDatabase)
+            {
+                _logger.LogInformation("Restoring caches from database ...");
+
+                _logger.LogDebug("Restoring Users from Clips database ...");
+                List<User> users = _clipRepository.All
+                    .SelectMany(c => new[] { c.Broadcaster, c.Creator })
+                    .Where(u => u != null)
+                    .ToList();
+                foreach (User user in users)
+                {
+                    if (!_userCache.IsCached(user.Id))
+                    {
+                        _logger.LogTrace("Caching user #{UserId} ...", user.Id);
+                        _userCache.CacheObject(user, user.Id);
+                    }
+                    else
+                    {
+                        _logger.LogTrace("Did not cache user #{UserId} because it is already cached", user.Id);
+                    }
+                }
+
+                CacheMetrics metrics = _userCache.GetMetrics();
+                _logger.LogInformation("Restored {CachedObjects} user(s) from database",
+                    metrics.CachedObjects);
+            }
         }
 
         private async Task CheckForClips(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Discovering clips ...");
             List<Clip> clips = (await _clipApi.GetClipsOfBroadcasterAsync(
-                _config.Twitch.ChannelId, _newestClipFound != null ? _newestClipFound - 1.Day() : null))
+                _config.Twitch.ChannelId, _newestClipFound))
                 .ToList();
 
             if (cancellationToken.IsCancellationRequested)

@@ -6,6 +6,8 @@ namespace DinoClipper.Config
         public string TempStorage { get; set; }
         public int MaxCacheAge { get; set; } = 8 * 60;
         public int SleepInterval { get; set; } = 300;
+        public bool RestoreDateFilter { get; set; } = true;
+        public bool RestoreCacheFromDatabase { get; set; } = true;
     }
 
     public class TwitchConfig
