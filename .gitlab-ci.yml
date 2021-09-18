@@ -1,8 +1,9 @@
-image: mcr.microsoft.com/dotnet/core/sdk:latest
+image: mcr.microsoft.com/dotnet/core/sdk:5.0
 
 stages:
     - build
     - test
+    - publish
 
 build:
     stage: build
@@ -16,3 +17,16 @@ test:
     stage: test
     script: 
         - "dotnet test src/DinoClipper.sln"
+
+build_docker:
+    stage: publish
+    image: docker:latest
+    services:
+        - docker:dind
+    before_script:
+        - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    script:
+        - docker build --pull -t "${CI_REGISTRY_IMAGE}:latest" .
+        - docker push "${CI_REGISTRY_IMAGE}:latest"
+    only:
+        - master
