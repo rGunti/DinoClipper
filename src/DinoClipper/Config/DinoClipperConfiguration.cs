@@ -10,6 +10,7 @@ namespace DinoClipper.Config
         public bool RestoreCacheFromDatabase { get; set; } = true;
         public string YouTubeDlPath { get; set; }
         public WebDavConfig UploadTarget { get; set; }
+        public DownloaderFlags DownloaderFlags { get; set; } = new();
     }
 
     public class TwitchConfig
@@ -24,5 +25,10 @@ namespace DinoClipper.Config
         public string Url { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+
+    public class DownloaderFlags
+    {
+        public bool SkipUpload { get; set; }
     }
 }

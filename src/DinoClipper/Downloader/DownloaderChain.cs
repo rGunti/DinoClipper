@@ -17,11 +17,13 @@ namespace DinoClipper.Downloader
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<DownloaderChain> _logger;
+        private readonly DownloaderFlags _downloaderFlags;
 
         public DownloaderChain(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
             _logger = _serviceProvider.GetRequiredService<ILogger<DownloaderChain>>();
+            _downloaderFlags = _serviceProvider.GetAppConfig().DownloaderFlags;
         }
 
         public IEnumerable<ITask<DownloaderChainPayload>> GetTasks()
@@ -31,10 +33,19 @@ namespace DinoClipper.Downloader
                 _serviceProvider.GetRequiredService<ILogger<DownloadClipTask>>(),
                 _serviceProvider.GetRequiredService<YoutubeDL>(),
                 _serviceProvider.GetAppConfig());
-            yield return new UploadClipTask(
-                _serviceProvider.GetRequiredService<ILogger<UploadClipTask>>(),
-                _serviceProvider.GetRequiredService<IWebDavClient>(),
-                _serviceProvider.GetRequiredService<WebDavConfig>());
+
+            if (_downloaderFlags.SkipUpload)
+            {
+                _logger.LogTrace("Skipped upload tasks because {SkipUploadProperty} is enabled",
+                    nameof(_downloaderFlags.SkipUpload));
+            }
+            else
+            {
+                yield return new UploadClipTask(
+                    _serviceProvider.GetRequiredService<ILogger<UploadClipTask>>(),
+                    _serviceProvider.GetRequiredService<IWebDavClient>(),
+                    _serviceProvider.GetRequiredService<WebDavConfig>());
+            }
         }
     }
 }
