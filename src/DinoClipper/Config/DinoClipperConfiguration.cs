@@ -32,5 +32,6 @@ namespace DinoClipper.Config
     {
         public bool SkipInjectingTitle { get; set; }
         public bool SkipUpload { get; set; }
+        public bool SkipClearingTempDirectory { get; set; }
     }
 }

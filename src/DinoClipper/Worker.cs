@@ -189,8 +189,10 @@ namespace DinoClipper
                 });
                 if (cancellationToken.IsCancellationRequested)
                     break;
+                
+                if (!_config.DownloaderFlags.SkipClearingTempDirectory)
+                    ClearTempDirectory();
             }
-            ClearTempDirectory();
         }
     }
 }
