@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using PandaDotNet.Cache.Abstraction;
 using PandaDotNet.ChainProcessing.Abstraction;
 using PandaDotNet.Time;
 using PandaDotNet.Utils;
+using Xabe.FFmpeg;
 
 namespace DinoClipper
 {
@@ -115,6 +117,35 @@ namespace DinoClipper
                 _logger.LogInformation("Restored {CachedObjects} user(s) from database",
                     metrics.CachedObjects);
             }
+
+            if (!string.IsNullOrWhiteSpace(_config.FfmpegPath))
+            {
+                _logger.LogInformation("Setting ffmpeg Path to {FfmpegPath}", _config.FfmpegPath);
+                FFmpeg.SetExecutablesPath(_config.FfmpegPath);
+            }
+
+            ClearTempDirectory();
+        }
+
+        private void ClearTempDirectory()
+        {
+            if (!Directory.Exists(_config.TempStorage))
+            {
+                return;
+            }
+            
+            _logger.LogInformation("Clearing temp directory ...");
+            foreach (string dir in Directory.GetDirectories(_config.TempStorage))
+            {
+                _logger.LogTrace("Deleting directory {Directory}", dir);
+                Directory.Delete(dir, true);
+            }
+
+            foreach (string file in Directory.GetFiles(_config.TempStorage))
+            {
+                _logger.LogTrace("Deleting file {File}", file);
+                File.Delete(file);
+            }
         }
 
         private async Task CheckForClips(CancellationToken cancellationToken)
@@ -150,11 +181,16 @@ namespace DinoClipper
                 newClips.Count);
             foreach (Clip clip in newClips)
             {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
                 _clipDownloader.Process(new DownloaderChainPayload
                 {
                     Clip = clip
                 });
+                if (cancellationToken.IsCancellationRequested)
+                    break;
             }
+            ClearTempDirectory();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using DinoClipper.Config;
 using Microsoft.Extensions.DependencyInjection;
 using PandaDotNet.Utils;
@@ -28,6 +29,11 @@ namespace DinoClipper
 
             return unsafeCharacters
                 .Aggregate(str, (current, c) => current.Replace(c.ToString(), replaceWith));
+        }
+
+        public static T RunSync<T>(this Task<T> task)
+        {
+            return task.GetAwaiter().GetResult();
         }
     }
 }

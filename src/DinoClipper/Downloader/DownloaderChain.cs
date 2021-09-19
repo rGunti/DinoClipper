@@ -34,6 +34,18 @@ namespace DinoClipper.Downloader
                 _serviceProvider.GetRequiredService<YoutubeDL>(),
                 _serviceProvider.GetAppConfig());
 
+            if (_downloaderFlags.SkipInjectingTitle)
+            {
+                _logger.LogTrace("Skipped title injection because {SkipInjectionProperty} is enabled",
+                    nameof(_downloaderFlags.SkipInjectingTitle));
+            }
+            else
+            {
+                yield return new InjectTitleTask(
+                    _serviceProvider.GetRequiredService<ILogger<InjectTitleTask>>(),
+                    _serviceProvider.GetAppConfig());
+            }
+
             if (_downloaderFlags.SkipUpload)
             {
                 _logger.LogTrace("Skipped upload tasks because {SkipUploadProperty} is enabled",

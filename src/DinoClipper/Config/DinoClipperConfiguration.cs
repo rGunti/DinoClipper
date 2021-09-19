@@ -8,6 +8,7 @@ namespace DinoClipper.Config
         public int SleepInterval { get; set; } = 300;
         public bool RestoreDateFilter { get; set; } = true;
         public bool RestoreCacheFromDatabase { get; set; } = true;
+        public string FfmpegPath { get; set; }
         public string YouTubeDlPath { get; set; }
         public WebDavConfig UploadTarget { get; set; }
         public DownloaderFlags DownloaderFlags { get; set; } = new();
@@ -29,6 +30,7 @@ namespace DinoClipper.Config
 
     public class DownloaderFlags
     {
+        public bool SkipInjectingTitle { get; set; }
         public bool SkipUpload { get; set; }
     }
 }
