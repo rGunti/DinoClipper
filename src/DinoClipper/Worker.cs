@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DinoClipper.Config;
+using DinoClipper.Downloader;
 using DinoClipper.Exceptions;
 using DinoClipper.Storage;
 using DinoClipper.TwitchApi;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PandaDotNet.Cache.Abstraction;
+using PandaDotNet.ChainProcessing.Abstraction;
 using PandaDotNet.Time;
 using PandaDotNet.Utils;
 
@@ -22,6 +24,7 @@ namespace DinoClipper
         private readonly IClipRepository _clipRepository;
         private readonly IClipApi _clipApi;
         private readonly ICache<User, string> _userCache;
+        private readonly ITaskChainProcessor<DownloaderChainPayload> _clipDownloader;
 
         private DateTime? _newestClipFound = null;
 
@@ -30,13 +33,15 @@ namespace DinoClipper
             DinoClipperConfiguration config,
             IClipRepository clipRepository,
             IClipApi clipApi,
-            ICache<User, string> userCache)
+            ICache<User, string> userCache,
+            ITaskChainProcessor<DownloaderChainPayload> clipDownloader)
         {
             _logger = logger;
             _config = config;
             _clipRepository = clipRepository;
             _clipApi = clipApi;
             _userCache = userCache;
+            _clipDownloader = clipDownloader;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -124,14 +129,14 @@ namespace DinoClipper
                 return;
             }
 
-            int newClips = 0;
+            var newClips = new List<Clip>();
             foreach (Clip clip in clips)
             {
                 if (!_clipRepository.ExistsWithId(clip.Id))
                 {
                     _logger.LogDebug("Found new clip {ClipId}", clip.Id);
-                    _clipRepository.Insert(clip);
-                    newClips++;
+                    Clip newClip = _clipRepository.Insert(clip);
+                    newClips.Add(newClip);
                 }
 
                 if (_newestClipFound == null || _newestClipFound < clip.CreatedAt)
@@ -142,7 +147,14 @@ namespace DinoClipper
             }
             
             _logger.LogInformation("Discovery completed, found {NewClipCount} new clip(s)",
-                newClips);
+                newClips.Count);
+            foreach (Clip clip in newClips)
+            {
+                _clipDownloader.Process(new DownloaderChainPayload
+                {
+                    Clip = clip
+                });
+            }
         }
     }
 }

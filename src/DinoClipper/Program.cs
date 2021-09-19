@@ -1,5 +1,8 @@
 using System;
+using System.Net;
+using System.Security;
 using DinoClipper.Config;
+using DinoClipper.Downloader;
 using DinoClipper.Exceptions;
 using DinoClipper.Storage;
 using DinoClipper.TwitchApi;
@@ -7,8 +10,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NYoutubeDL;
 using PandaDotNet.Cache.Abstraction;
 using PandaDotNet.Cache.ExpiringCache;
+using PandaDotNet.ChainProcessing;
+using PandaDotNet.ChainProcessing.Abstraction;
 using PandaDotNet.DI.Configuration;
 using PandaDotNet.Repo.Drivers.LiteDB;
 using PandaDotNet.Time;
@@ -16,6 +22,7 @@ using Serilog;
 using TwitchLib.Api;
 using TwitchLib.Api.Core;
 using TwitchLib.Api.Interfaces;
+using WebDav;
 
 namespace DinoClipper
 {
@@ -61,6 +68,8 @@ namespace DinoClipper
                     services
                         // Configuration
                         .AddConfigObject<DinoClipperConfiguration>("DinoClipper")
+                        .AddSingleton<WebDavConfig>(s => s.GetAppConfig().UploadTarget)
+                        .AddSingleton<TwitchConfig>(s => s.GetAppConfig().Twitch)
                         // Storage
                         .AddLiteDbDriver(hostContext.Configuration.GetConnectionString("litedb"))
                         .AddSingleton<IClipRepository, ClipRepository>()
@@ -73,16 +82,68 @@ namespace DinoClipper
                         // Twitch
                         .AddSingleton<ITwitchAPI>(s =>
                         {
-                            DinoClipperConfiguration cfg = s.GetAppConfig();
+                            var cfg = s.GetRequiredService<TwitchConfig>();
                             return new TwitchAPI(settings: new ApiSettings
                             {
-                                ClientId = cfg.Twitch?.ClientId,
-                                Secret = cfg.Twitch?.ClientSecret
+                                ClientId = cfg?.ClientId,
+                                Secret = cfg?.ClientSecret
                             });
                         })
+                        // YoutubeDL
+                        .AddTransient(s =>
+                        {
+                            var logger = s.GetRequiredService<ILogger<YoutubeDL>>();
+                            var inst = new YoutubeDL(s.GetAppConfig().YouTubeDlPath);
+                            inst.StandardOutputEvent += (_, e) =>
+                            {
+                                logger.LogDebug("ytdl stdout: {Stdout}", e);
+                            };
+                            inst.StandardErrorEvent += (_, e) =>
+                            {
+                                logger.LogDebug("ytdl stderr: {Stderr}", e);
+                            };
+                            return inst;
+                        })
+                        // WebDav
+                        .AddTransient<WebDavClientParams>(s =>
+                        {
+                            var cfg = s.GetRequiredService<WebDavConfig>();
+                            var inst = new WebDavClientParams
+                            {
+                                BaseAddress = new Uri(cfg.Url),
+                                Credentials = new NetworkCredential(cfg.Username, cfg.Password)
+                            };
+                            return inst;
+                        })
+                        .AddTransient<IWebDavClient>(s =>
+                            new WebDavClient(s.GetRequiredService<WebDavClientParams>()))
                         // APIs
                         .AddSingleton<IUserApi, UserApi>()
                         .AddSingleton<IClipApi, ClipApi>()
+                        // Chains
+                        .AddSingleton<IDownloaderChain, DownloaderChain>()
+                        .AddSingleton<ITaskChainProcessor<DownloaderChainPayload>>(s =>
+                        {
+                            var logger = s.GetRequiredService<ILogger<YoutubeDL>>();
+                            var inst = new DownloaderProcessor(
+                                s.GetRequiredService<IDownloaderChain>());
+                            inst.OnChainAborted += (_, e) =>
+                            {
+                                logger.LogInformation("TRANS={TransactionId}: Chain was aborted at task {Task}",
+                                    e.TransactionId, e.CurrentTask);
+                            };
+                            inst.OnChainCompleted += (_, e) =>
+                            {
+                                logger.LogDebug("TRANS={TransactionId}: Chain was completed",
+                                    e.TransactionId);
+                            };
+                            inst.OnTaskSkipped += (_, e) =>
+                            {
+                                logger.LogInformation("TRANS={TransactionId}: Task {Task} has been skipped",
+                                    e.TransactionId, e.CurrentTask);
+                            };
+                            return inst;
+                        })
                         // Worker
                         .AddHostedService<Worker>();
                 })
