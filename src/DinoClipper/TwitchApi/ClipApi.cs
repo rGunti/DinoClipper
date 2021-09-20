@@ -19,15 +19,18 @@ namespace DinoClipper.TwitchApi
         private readonly ILogger<ClipApi> _logger;
         private readonly ITwitchAPI _twitchAPI;
         private readonly IUserApi _userApi;
+        private readonly IGameApi _gameApi;
 
         public ClipApi(
             ILogger<ClipApi> logger,
             ITwitchAPI twitchAPI,
-            IUserApi userApi)
+            IUserApi userApi,
+            IGameApi gameApi)
         {
             _logger = logger;
             _twitchAPI = twitchAPI;
             _userApi = userApi;
+            _gameApi = gameApi;
         }
         
         
@@ -80,6 +83,7 @@ namespace DinoClipper.TwitchApi
                 Views = clip.ViewCount,
                 Creator = await _userApi.GetUserByIdAsync(clip.CreatorId),
                 Broadcaster = await _userApi.GetUserByIdAsync(clip.BroadcasterId),
+                Game = await _gameApi.GetGameByIdAsync(clip.GameId),
                 Duration = clip.Duration,
                 Language = clip.Language,
                 Url = clip.Url,

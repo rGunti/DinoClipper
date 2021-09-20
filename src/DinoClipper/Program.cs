@@ -77,6 +77,10 @@ namespace DinoClipper
                             new ExpiringMemoryCache<User, string>(
                                 TimeSpan.FromMinutes(s.GetAppConfig().MaxCacheAge),
                                 s.GetRequiredService<IClock>()))
+                        .AddSingleton<ICache<Game, string>, ExpiringMemoryCache<Game, string>>(s =>
+                            new ExpiringMemoryCache<Game, string>(
+                                TimeSpan.FromMinutes(s.GetAppConfig().MaxCacheAge),
+                                s.GetRequiredService<IClock>()))
                         // Twitch
                         .AddSingleton<ITwitchAPI>(s =>
                         {
@@ -91,6 +95,7 @@ namespace DinoClipper
                         .AddTransient(s =>
                         {
                             var logger = s.GetRequiredService<ILogger<YoutubeDL>>();
+                            logger.LogTrace("Creating new instance");
                             var inst = new YoutubeDL(s.GetAppConfig().YouTubeDlPath);
                             inst.StandardOutputEvent += (_, e) =>
                             {
@@ -117,6 +122,7 @@ namespace DinoClipper
                             new WebDavClient(s.GetRequiredService<WebDavClientParams>()))
                         // APIs
                         .AddSingleton<IUserApi, UserApi>()
+                        .AddSingleton<IGameApi, GameApi>()
                         .AddSingleton<IClipApi, ClipApi>()
                         // Chains
                         .AddSingleton<IDownloaderChain, DownloaderChain>()

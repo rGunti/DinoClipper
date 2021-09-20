@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DinoClipper.Config;
 using Microsoft.Extensions.DependencyInjection;
 using PandaDotNet.Utils;
+using Xabe.FFmpeg;
 
 namespace DinoClipper
 {
@@ -15,7 +18,7 @@ namespace DinoClipper
 
         private static char[] unsafeCharacters = Path.GetInvalidPathChars()
             .Concat(Path.GetInvalidFileNameChars())
-            .Concat(new [] { '|' })
+            .Concat(new [] { '|', ',', '*', '!', '<', '>', '[', ']', '(', ')', '?' })
             .Distinct()
             .ToArray();
 
@@ -35,5 +38,23 @@ namespace DinoClipper
         {
             return task.GetAwaiter().GetResult();
         }
+
+        public static T RunSafeSync<T>(this Task<T> task, int idleInterval = 500)
+        {
+            while (!task.IsCompleted)
+            {
+                Thread.Sleep(idleInterval);
+            }
+
+            if (task.Exception != null)
+            {
+                throw task.Exception;
+            }
+
+            return task.Result;
+        }
+
+        public static string JoinToString(this IEnumerable<string> strings, string joinSeq = "")
+            => string.Join(joinSeq, strings);
     }
 }

@@ -26,6 +26,7 @@ namespace DinoClipper
         private readonly IClipRepository _clipRepository;
         private readonly IClipApi _clipApi;
         private readonly ICache<User, string> _userCache;
+        private readonly ICache<Game, string> _gameCache;
         private readonly ITaskChainProcessor<DownloaderChainPayload> _clipDownloader;
 
         private DateTime? _newestClipFound = null;
@@ -36,6 +37,7 @@ namespace DinoClipper
             IClipRepository clipRepository,
             IClipApi clipApi,
             ICache<User, string> userCache,
+            ICache<Game, string> gameCache,
             ITaskChainProcessor<DownloaderChainPayload> clipDownloader)
         {
             _logger = logger;
@@ -43,6 +45,7 @@ namespace DinoClipper
             _clipRepository = clipRepository;
             _clipApi = clipApi;
             _userCache = userCache;
+            _gameCache = gameCache;
             _clipDownloader = clipDownloader;
         }
 
@@ -94,28 +97,8 @@ namespace DinoClipper
             if (_config.RestoreCacheFromDatabase)
             {
                 _logger.LogInformation("Restoring caches from database ...");
-
-                _logger.LogDebug("Restoring Users from Clips database ...");
-                List<User> users = _clipRepository.All
-                    .SelectMany(c => new[] { c.Broadcaster, c.Creator })
-                    .Where(u => u != null)
-                    .ToList();
-                foreach (User user in users)
-                {
-                    if (!_userCache.IsCached(user.Id))
-                    {
-                        _logger.LogTrace("Caching user #{UserId} ...", user.Id);
-                        _userCache.CacheObject(user, user.Id);
-                    }
-                    else
-                    {
-                        _logger.LogTrace("Did not cache user #{UserId} because it is already cached", user.Id);
-                    }
-                }
-
-                CacheMetrics metrics = _userCache.GetMetrics();
-                _logger.LogInformation("Restored {CachedObjects} user(s) from database",
-                    metrics.CachedObjects);
+                RestoreUserCache();
+                RestoreGameCache();
             }
 
             if (!string.IsNullOrWhiteSpace(_config.FfmpegPath))
@@ -125,6 +108,56 @@ namespace DinoClipper
             }
 
             ClearTempDirectory();
+        }
+
+        private void RestoreUserCache()
+        {
+            _logger.LogDebug("Restoring Users from Clips database ...");
+            List<User> users = _clipRepository.All
+                .SelectMany(c => new[] { c.Broadcaster, c.Creator })
+                .Where(u => u != null)
+                .ToList();
+            foreach (User user in users)
+            {
+                if (!_userCache.IsCached(user.Id))
+                {
+                    _logger.LogTrace("Caching user #{UserId} ...", user.Id);
+                    _userCache.CacheObject(user, user.Id);
+                }
+                else
+                {
+                    _logger.LogTrace("Did not cache user #{UserId} because it is already cached", user.Id);
+                }
+            }
+
+            CacheMetrics metrics = _userCache.GetMetrics();
+            _logger.LogInformation("Restored {CachedObjects} user(s) from database",
+                metrics.CachedObjects);
+        }
+
+        private void RestoreGameCache()
+        {
+            _logger.LogDebug("Restoring Games from Clips database ...");
+            List<Game> games = _clipRepository.All
+                .Select(c => c.Game)
+                .Where(g => g != null)
+                .ToList();
+            foreach (Game game in games)
+            {
+                if (!_gameCache.IsCached(game.Id))
+                {
+                    _logger.LogTrace("Caching game #{GameId} ...", game.Id);
+                    _gameCache.CacheObject(game, game.Id);
+                }
+                else
+                {
+                    _logger.LogTrace("Did not cache game #{GameId} because it is already cached", game.Id);
+                }
+            }
+
+            CacheMetrics metrics = _gameCache.GetMetrics();
+            _logger.LogInformation("Restored {CachedObjects} game(s) from database",
+                metrics.CachedObjects);
         }
 
         private void ClearTempDirectory()
@@ -166,8 +199,22 @@ namespace DinoClipper
                 if (!_clipRepository.ExistsWithId(clip.Id))
                 {
                     _logger.LogDebug("Found new clip {ClipId}", clip.Id);
-                    Clip newClip = _clipRepository.Insert(clip);
-                    newClips.Add(newClip);
+
+                    bool completed = RunClipProcess(clip, cancellationToken);
+                    if (completed)
+                    {
+                        _logger.LogTrace("Saving clip {ClipId} into database", clip.Id);
+                        Clip newClip = _clipRepository.Insert(clip);
+                        newClips.Add(newClip);
+                    }
+                    else if (cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogInformation("Cancellation was requested, stopped processing");
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to process clip {ClipId}, check logs for errors", clip.Id);
+                    }
                 }
 
                 if (_newestClipFound == null || _newestClipFound < clip.CreatedAt)
@@ -175,24 +222,32 @@ namespace DinoClipper
                     _logger.LogTrace("Updating date of newest found clip to {NewClipDate}", clip.CreatedAt);
                     _newestClipFound = clip.CreatedAt;
                 }
+
+                if (cancellationToken.IsCancellationRequested)
+                    return;
             }
             
             _logger.LogInformation("Discovery completed, found {NewClipCount} new clip(s)",
                 newClips.Count);
-            foreach (Clip clip in newClips)
+        }
+
+        private bool RunClipProcess(Clip clip, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return false;
+
+            _logger.LogTrace("Start processing clip {ClipId}", clip.Id);
+            bool completed = _clipDownloader.Process(new DownloaderChainPayload
             {
-                if (cancellationToken.IsCancellationRequested)
-                    break;
-                _clipDownloader.Process(new DownloaderChainPayload
-                {
-                    Clip = clip
-                });
-                if (cancellationToken.IsCancellationRequested)
-                    break;
-                
-                if (!_config.DownloaderFlags.SkipClearingTempDirectory)
-                    ClearTempDirectory();
-            }
+                Clip = clip
+            });
+            if (cancellationToken.IsCancellationRequested)
+                return false;
+
+            if (!_config.DownloaderFlags.SkipClearingTempDirectory)
+                ClearTempDirectory();
+
+            return completed;
         }
     }
 }

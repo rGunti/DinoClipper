@@ -14,5 +14,6 @@ namespace DinoClipper.Storage
         public int Views { get; set; }
         public string Language { get; set; }
         public float Duration { get; set; }
+        public Game Game { get; set; }
     }
 }
