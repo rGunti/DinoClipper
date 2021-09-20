@@ -18,7 +18,7 @@ namespace DinoClipper
 
         private static char[] unsafeCharacters = Path.GetInvalidPathChars()
             .Concat(Path.GetInvalidFileNameChars())
-            .Concat(new [] { '|', ',', '*', '!', '<', '>', '[', ']', '(', ')', '?' })
+            .Concat(new [] { '|', ',', '*', '!', '<', '>', '[', ']', '(', ')', '{', '}', '?', '"', '\'' })
             .Distinct()
             .ToArray();
 
