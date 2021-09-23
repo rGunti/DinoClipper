@@ -51,6 +51,8 @@ namespace DinoClipper
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogWarning("Starting up worker");
+            
             ValidateConfiguration();
             PrepareEnvironment();
 
