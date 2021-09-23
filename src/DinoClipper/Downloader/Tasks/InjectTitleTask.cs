@@ -37,12 +37,6 @@ namespace DinoClipper.Downloader.Tasks
             string outputPath = Path.Combine(_config.TempStorage,
                 $"{Path.GetFileNameWithoutExtension(payload.DownloadedFile)}.convert.mp4");
 
-            _logger.LogTrace("Getting Media Info from {InputFilePath}", inputFile);
-            IMediaInfo mediaInfo = FFmpeg.GetMediaInfo(payload.DownloadedFile).RunSafeSync();
-
-            IVideoStream videoStream = mediaInfo.VideoStreams.First().SetCodec(VideoCodec.h264);
-            IAudioStream audioStream = mediaInfo.AudioStreams.First().SetCodec(AudioCodec.aac);
-
             _logger.LogTrace("Generating filter script ...");
             string script = FilterScriptGenerator.RenderFilterScriptToText(
                 GenerateScriptForClip(payload.Clip));
@@ -73,9 +67,10 @@ namespace DinoClipper.Downloader.Tasks
             return true;
         }
 
-        private IEnumerable<FilterDefinition> GenerateScriptForClip(Clip clip)
+        private IEnumerable<FilterDefinition> GenerateScriptForClip(Clip clip, bool includeAvatar = false)
         {
-            const string BUFFER = "fg";
+            const string BUFFER = "clip";
+            const string AVATAR_BUFFER = "avatar";
             const string FONT_COLOR = "lime";
 
             // Buffer In
@@ -87,57 +82,65 @@ namespace DinoClipper.Downloader.Tasks
 
             // Box
             yield return new FilterDefinition("drawbox", BUFFER, BUFFER)
-                .AddParam("x", "in_w/2")
+                .AddParam("x", 0)
                 .AddParam("y", 0)
-                .AddParam("w", "in_w/2")
-                .AddParam("h", 70)
+                .AddParam("w", "in_w")
+                .AddParam("h", 35)
                 .AddParam("c", "black@0.6")
                 .AddParam("t", "fill");
 
-            // "clipped by"
+            // "clipped at"
             yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
-                .AddParam("x", "(w/2)+5")
+                .AddParam("x", 5)
                 .AddParam("y", 10)
                 .AddParam("fontsize", 20)
                 .AddParam("fontcolor", FONT_COLOR)
-                .AddParam("text", "'clipped by'");
-            // Clip Creator
-            yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
-                .AddParam("x", "(w/2)+120")
-                .AddParam("y", 7)
-                .AddParam("fontsize", 24)
-                .AddParam("fontcolor", FONT_COLOR)
-                .AddFileParam("textfile", clip.Creator?.Name ?? "somebody we used to know", _config.TempStorage);
-
-            // "at"
-            yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
-                .AddParam("x", "w-text_w-150")
-                .AddParam("y", 10)
-                .AddParam("fontsize", 20)
-                .AddParam("fontcolor", FONT_COLOR)
-                .AddParam("text", "'at'");
+                .AddParam("text", "'clipped at'");
             // Clip Date
             yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
-                .AddParam("x", "w-text_w-5")
+                .AddParam("x", 110)
                 .AddParam("y", 7)
                 .AddParam("fontsize", 24)
                 .AddParam("fontcolor", FONT_COLOR)
                 .AddFileParam("textfile", $"{clip.CreatedAt:yyyy-MM-dd}", _config.TempStorage);
 
-            // "Game"
+            // "at"
             yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
-                .AddParam("x", "(w/2)+5")
-                .AddParam("y", 45)
+                .AddParam("x", 255)
+                .AddParam("y", 10)
                 .AddParam("fontsize", 20)
                 .AddParam("fontcolor", FONT_COLOR)
-                .AddParam("text", "'Game'");
+                .AddParam("text", "'at'");
+            // Clip Creator
+            yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
+                .AddParam("x", 285)
+                .AddParam("y", 7)
+                .AddParam("fontsize", 24)
+                .AddParam("fontcolor", FONT_COLOR)
+                .AddFileParam("textfile", clip.Creator?.Name ?? "somebody we used to know", _config.TempStorage);
+
             // Game Title
             yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
-                .AddParam("x", "(w/2)+120")
-                .AddParam("y", 40)
+                .AddParam("x", "w-text_w-5")
+                .AddParam("y", 7)
                 .AddParam("fontsize", 24)
                 .AddParam("fontcolor", FONT_COLOR)
                 .AddFileParam("textfile", clip.Game?.Name ?? "some game that we used to know", _config.TempStorage);
+            
+            // (optional): Avatar
+            if (includeAvatar)
+            {
+                // Load avatar into separate buffer
+                yield return new FilterDefinition("null", "1:v", AVATAR_BUFFER);
+                // Scale buffer to desired size
+                yield return new FilterDefinition("scale", AVATAR_BUFFER, AVATAR_BUFFER)
+                    .AddParam("w", 35)
+                    .AddParam("h", 35);
+                // Overlay avatar on video buffer
+                yield return new FilterDefinition("overlay", new []{ BUFFER, AVATAR_BUFFER }, BUFFER)
+                    .AddParam("x", "(main_w/2)-(overlay_w/2)")
+                    .AddParam("y", 0);
+            }
 
             // Buffer Out
             yield return new FilterDefinition("null", BUFFER);

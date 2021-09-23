@@ -69,6 +69,17 @@ namespace DinoClipper.Ffmpeg
                 Outputs = new List<string> { output };
         }
 
+        public FilterDefinition(string filter, IEnumerable<string> inputs, IEnumerable<string> outputs)
+        {
+            Inputs = inputs.ToList();
+            Outputs = outputs.ToList();
+        }
+
+        public FilterDefinition(string filter, IEnumerable<string> inputs, string outputs = null)
+            : this(filter, inputs, new []{ outputs }.Where(i => !string.IsNullOrWhiteSpace(i)))
+        {
+        }
+
         public FilterDefinition(string filter, string input, string output, Dictionary<string, string> filterParams)
             : this(filter, input, output)
         {
