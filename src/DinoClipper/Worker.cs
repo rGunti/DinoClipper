@@ -196,7 +196,7 @@ namespace DinoClipper
             }
 
             var newClips = new List<Clip>();
-            foreach (Clip clip in clips)
+            foreach (Clip clip in clips.OrderBy(c => c.CreatedAt))
             {
                 if (!_clipRepository.ExistsWithId(clip.Id))
                 {
