@@ -19,6 +19,7 @@
         <PackageReference Include="Serilog.Extensions.Hosting" Version="4.1.2" />
         <PackageReference Include="Serilog.Settings.Configuration" Version="3.2.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
+        <PackageReference Include="Serilog.Sinks.Telegram.Alternative" Version="1.1.0" />
         <PackageReference Include="TwitchLib.Api" Version="3.2.4" />
         <PackageReference Include="WebDav.Client" Version="2.7.0" />
         <PackageReference Include="Xabe.FFmpeg" Version="5.0.2" />

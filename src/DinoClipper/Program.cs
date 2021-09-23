@@ -28,6 +28,10 @@ namespace DinoClipper
     {
         public static int Main(string[] args)
         {
+#if DEBUG
+            Serilog.Debugging.SelfLog.Enable(msg => System.Diagnostics.Trace.WriteLine(msg));
+#endif
+
             IHost host = CreateHostBuilder(args).Build();
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
             try
