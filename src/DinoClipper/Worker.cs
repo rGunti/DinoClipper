@@ -203,17 +203,11 @@ namespace DinoClipper
                     _logger.LogDebug("Found new clip {ClipId}", clip.Id);
 
                     bool completed = RunClipProcess(clip, cancellationToken);
-                    if (completed)
-                    {
-                        _logger.LogTrace("Saving clip {ClipId} into database", clip.Id);
-                        Clip newClip = _clipRepository.Insert(clip);
-                        newClips.Add(newClip);
-                    }
-                    else if (cancellationToken.IsCancellationRequested)
+                    if (cancellationToken.IsCancellationRequested)
                     {
                         _logger.LogInformation("Cancellation was requested, stopped processing");
                     }
-                    else
+                    else if (!completed)
                     {
                         _logger.LogWarning("Failed to process clip {ClipId}, check logs for errors", clip.Id);
                     }

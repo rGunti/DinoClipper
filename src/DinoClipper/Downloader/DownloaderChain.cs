@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DinoClipper.Config;
 using DinoClipper.Downloader.Tasks;
+using DinoClipper.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NYoutubeDL;
@@ -76,6 +77,8 @@ namespace DinoClipper.Downloader
                     _serviceProvider.GetRequiredService<IWebDavClient>(),
                     _serviceProvider.GetRequiredService<WebDavConfig>());
             }
+
+            yield return new SaveClipTask(_serviceProvider.GetRequiredService<IClipRepository>());
         }
     }
 }
