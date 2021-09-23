@@ -46,7 +46,7 @@ namespace DinoClipper.Downloader.Tasks
             _logger.LogTrace("Uploading to url {UploadUrl} ...", uploadUrls);
 
             using var fs = new FileStream(payload.DownloadedFile!, FileMode.Open);
-            WebDavResponse response = _webDavClient.PutFile(uploadUrls, fs).GetAwaiter().GetResult();
+            WebDavResponse response = _webDavClient.PutFile(uploadUrls, fs).RunSafeSync();
 
             _logger.LogTrace("Request completed with response code {WebDavResponseCode} {WebDavResponse}",
                 response.StatusCode, response.Description);
