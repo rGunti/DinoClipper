@@ -17,13 +17,15 @@ namespace DinoClipper.Downloader
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<DownloaderChain> _logger;
+        private readonly DinoClipperConfiguration _config;
         private readonly DownloaderFlags _downloaderFlags;
 
         public DownloaderChain(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
             _logger = _serviceProvider.GetRequiredService<ILogger<DownloaderChain>>();
-            _downloaderFlags = _serviceProvider.GetAppConfig().DownloaderFlags;
+            _config = _serviceProvider.GetAppConfig();
+            _downloaderFlags = _config.DownloaderFlags;
         }
 
         public IEnumerable<ITask<DownloaderChainPayload>> GetTasks()
@@ -34,10 +36,26 @@ namespace DinoClipper.Downloader
                 _serviceProvider.GetRequiredService<YoutubeDL>(),
                 _serviceProvider.GetAppConfig());
 
-            if (_downloaderFlags.SkipInjectingTitle)
+            if (_downloaderFlags.UploadOriginal && !_downloaderFlags.SkipUpload)
             {
-                _logger.LogTrace("Skipped title injection because {SkipInjectionProperty} is enabled",
-                    nameof(_downloaderFlags.SkipInjectingTitle));
+                yield return new UploadClipTask(
+                    _serviceProvider.GetRequiredService<ILogger<UploadClipTask>>(),
+                    _serviceProvider.GetRequiredService<IWebDavClient>(),
+                    _serviceProvider.GetRequiredService<WebDavConfig>(),
+                    true);
+            }
+            else
+            {
+                _logger.LogTrace(
+                    "Skipped uploading original clip because either {UploadOriginalFlag} was disabled " +
+                    "(enabled={UploadOriginalEnabled}) or {SkipUploadFlag} was enabled (enabled={SkipUploadEnabled})",
+                    nameof(_downloaderFlags.UploadOriginal), _downloaderFlags.UploadOriginal,
+                    nameof(_downloaderFlags.SkipUpload), _downloaderFlags.SkipUpload);
+            }
+
+            if (!_config.TitleInjection.Enabled)
+            {
+                _logger.LogTrace("Skipped title injection because it was disabled in the app configuration");
             }
             else
             {

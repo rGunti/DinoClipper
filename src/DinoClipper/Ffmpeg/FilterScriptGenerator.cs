@@ -70,6 +70,7 @@ namespace DinoClipper.Ffmpeg
         }
 
         public FilterDefinition(string filter, IEnumerable<string> inputs, IEnumerable<string> outputs)
+            : this(filter)
         {
             Inputs = inputs.ToList();
             Outputs = outputs.ToList();

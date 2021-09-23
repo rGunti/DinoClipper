@@ -12,6 +12,7 @@ namespace DinoClipper.Config
         public string YouTubeDlPath { get; set; }
         public WebDavConfig UploadTarget { get; set; }
         public DownloaderFlags DownloaderFlags { get; set; } = new();
+        public TitleInjectionConfig TitleInjection { get; set; } = new();
     }
 
     public class TwitchConfig
@@ -28,9 +29,21 @@ namespace DinoClipper.Config
         public string Password { get; set; }
     }
 
+    public class TitleInjectionConfig
+    {
+        public bool Enabled { get; set; } = true;
+        public AvatarSettings Avatar { get; set; } = new();
+
+        public class AvatarSettings
+        {
+            public bool Add { get; set; } = false;
+            public string Source { get; set; }
+        }
+    }
+
     public class DownloaderFlags
     {
-        public bool SkipInjectingTitle { get; set; }
+        public bool UploadOriginal { get; set; }
         public bool SkipUpload { get; set; }
         public bool SkipClearingTempDirectory { get; set; }
     }

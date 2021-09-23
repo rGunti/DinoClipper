@@ -13,16 +13,19 @@ namespace DinoClipper.Downloader.Tasks
         private readonly IWebDavClient _webDavClient;
         private readonly WebDavConfig _webDavConfig;
         private readonly Uri _baseUrl;
+        private readonly bool _isOriginalClip;
 
         public UploadClipTask(
             ILogger<UploadClipTask> logger,
             IWebDavClient webDavClient,
-            WebDavConfig webDavConfig)
+            WebDavConfig webDavConfig,
+            bool isOriginalClip = false)
         {
             _logger = logger;
             _webDavClient = webDavClient;
             _webDavConfig = webDavConfig;
             _baseUrl = new Uri(_webDavConfig.Url);
+            _isOriginalClip = isOriginalClip;
         }
 
         public bool CanRun(DownloaderChainPayload payload)
@@ -37,8 +40,9 @@ namespace DinoClipper.Downloader.Tasks
                 clip.Id, payload.DownloadedFile);
 
             string originalExtension = Path.GetExtension(payload.DownloadedFile);
+            string uploadDir = _isOriginalClip ? "original" : "processed";
             string fileName = $"{clip.CreatedAt:yyyy-MM-dd}_{clip.Creator.Name}_{clip.Name}.{originalExtension}".MakeSafe();
-            var uploadUrls = new Uri(_baseUrl, fileName);
+            var uploadUrls = new Uri(_baseUrl, $"{uploadDir}/{fileName}");
             _logger.LogTrace("Uploading to url {UploadUrl} ...", uploadUrls);
 
             using var fs = new FileStream(payload.DownloadedFile!, FileMode.Open);

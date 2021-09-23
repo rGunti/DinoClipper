@@ -39,11 +39,19 @@ namespace DinoClipper.Downloader.Tasks
 
             _logger.LogTrace("Generating filter script ...");
             string script = FilterScriptGenerator.RenderFilterScriptToText(
-                GenerateScriptForClip(payload.Clip));
+                GenerateScriptForClip(payload.Clip, _config.TitleInjection.Avatar.Add));
             string scriptPath = WriteTextToTempFile(script);
 
             IConversion conversion = FFmpeg.Conversions.New()
-                .AddParameter($"-i \"{inputFile}\"")
+                .AddParameter($"-i \"{inputFile}\"");
+            if (_config.TitleInjection.Avatar.Add)
+            {
+                _logger.LogTrace("Avatar injection is enabled, adding from source file {AvatarSourceFilePath}",
+                    _config.TitleInjection.Avatar.Source);
+                conversion = conversion
+                    .AddParameter($"-i \"{_config.TitleInjection.Avatar.Source}\"");
+            }
+            conversion = conversion
                 .AddParameter($"-filter_complex_script \"{scriptPath}\"")
                 .SetOverwriteOutput(true)
                 .SetOutput(outputPath);
