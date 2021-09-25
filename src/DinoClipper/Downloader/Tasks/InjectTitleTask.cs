@@ -34,13 +34,13 @@ namespace DinoClipper.Downloader.Tasks
         public async Task<bool> Run(DownloaderChainPayload payload)
         {
             string inputFile = payload.DownloadedFile;
-            string outputPath = Path.Combine(_config.TempStorage,
+            string outputPath = Path.Combine(payload.WorkingDirectory,
                 $"{Path.GetFileNameWithoutExtension(payload.DownloadedFile)}.convert.mp4");
 
             _logger.LogTrace("Generating filter script ...");
             string script = FilterScriptGenerator.RenderFilterScriptToText(
-                GenerateScriptForClip(payload.Clip, _config.TitleInjection.Avatar.Add));
-            string scriptPath = WriteTextToTempFile(script);
+                GenerateScriptForClip(payload.Clip, payload.WorkingDirectory, _config.TitleInjection.Avatar.Add));
+            string scriptPath = WriteTextToTempFile(script, payload.WorkingDirectory);
 
             IConversion conversion = FFmpeg.Conversions.New()
                 .AddParameter($"-i \"{inputFile}\"");
@@ -77,7 +77,7 @@ namespace DinoClipper.Downloader.Tasks
             return true;
         }
 
-        private IEnumerable<FilterDefinition> GenerateScriptForClip(Clip clip, bool includeAvatar = false)
+        private IEnumerable<FilterDefinition> GenerateScriptForClip(Clip clip, string workingDirectory, bool includeAvatar = false)
         {
             const string BUFFER = "clip";
             const string AVATAR_BUFFER = "avatar";
@@ -112,7 +112,7 @@ namespace DinoClipper.Downloader.Tasks
                 .AddParam("y", 7)
                 .AddParam("fontsize", 24)
                 .AddParam("fontcolor", FONT_COLOR)
-                .AddFileParam("textfile", $"{clip.CreatedAt:yyyy-MM-dd}", _config.TempStorage);
+                .AddFileParam("textfile", $"{clip.CreatedAt:yyyy-MM-dd}", workingDirectory);
 
             // "by"
             yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
@@ -127,7 +127,7 @@ namespace DinoClipper.Downloader.Tasks
                 .AddParam("y", 7)
                 .AddParam("fontsize", 24)
                 .AddParam("fontcolor", FONT_COLOR)
-                .AddFileParam("textfile", clip.Creator?.Name ?? "somebody we used to know", _config.TempStorage);
+                .AddFileParam("textfile", clip.Creator?.Name ?? "somebody we used to know", workingDirectory);
 
             // Game Title
             yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
@@ -135,7 +135,7 @@ namespace DinoClipper.Downloader.Tasks
                 .AddParam("y", 7)
                 .AddParam("fontsize", 24)
                 .AddParam("fontcolor", FONT_COLOR)
-                .AddFileParam("textfile", clip.Game?.Name ?? "some game that we used to know", _config.TempStorage);
+                .AddFileParam("textfile", clip.Game?.Name ?? "some game that we used to know", workingDirectory);
             
             // (optional): Avatar
             if (includeAvatar)
@@ -162,9 +162,9 @@ namespace DinoClipper.Downloader.Tasks
                 args.ProcessId, args.Percent, args.Duration, args.TotalLength);
         }
 
-        private string WriteTextToTempFile(string textToDraw)
+        private string WriteTextToTempFile(string textToDraw, string workingDirectory)
         {
-            string newPath = Path.Combine(_config.TempStorage, $"generated.{Guid.NewGuid()}.txt");
+            string newPath = Path.Combine(workingDirectory, $"generated.{Guid.NewGuid()}.txt");
             File.WriteAllText(newPath, textToDraw);
             return newPath;
         }

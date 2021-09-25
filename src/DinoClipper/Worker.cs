@@ -28,6 +28,7 @@ namespace DinoClipper
         private readonly ICache<User, string> _userCache;
         private readonly ICache<Game, string> _gameCache;
         private readonly ITaskChainProcessor<DownloaderChainPayload> _clipDownloader;
+        private readonly IDownloaderQueue _downloaderQueue;
 
         private DateTime? _newestClipFound = null;
 
@@ -38,7 +39,8 @@ namespace DinoClipper
             IClipApi clipApi,
             ICache<User, string> userCache,
             ICache<Game, string> gameCache,
-            ITaskChainProcessor<DownloaderChainPayload> clipDownloader)
+            ITaskChainProcessor<DownloaderChainPayload> clipDownloader,
+            IDownloaderQueue downloaderQueue)
         {
             _logger = logger;
             _config = config;
@@ -47,6 +49,7 @@ namespace DinoClipper
             _userCache = userCache;
             _gameCache = gameCache;
             _clipDownloader = clipDownloader;
+            _downloaderQueue = downloaderQueue;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -55,6 +58,7 @@ namespace DinoClipper
             
             ValidateConfiguration();
             PrepareEnvironment();
+            _downloaderQueue.StartQueue(stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -200,17 +204,8 @@ namespace DinoClipper
             {
                 if (!_clipRepository.ExistsWithId(clip.Id))
                 {
-                    _logger.LogDebug("Found new clip {ClipId}", clip.Id);
-
-                    bool completed = RunClipProcess(clip, cancellationToken);
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        _logger.LogInformation("Cancellation was requested, stopped processing");
-                    }
-                    else if (!completed)
-                    {
-                        _logger.LogWarning("Failed to process clip {ClipId}, check logs for errors", clip.Id);
-                    }
+                    _logger.LogDebug("Found new clip {ClipId}, sending to queue", clip.Id);
+                    _downloaderQueue.QueueClip(clip);
                 }
 
                 if (_newestClipFound == null || _newestClipFound < clip.CreatedAt)

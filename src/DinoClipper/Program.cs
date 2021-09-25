@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Threading;
 using DinoClipper.Config;
 using DinoClipper.Downloader;
 using DinoClipper.Exceptions;
@@ -28,6 +29,7 @@ namespace DinoClipper
     {
         public static int Main(string[] args)
         {
+            Thread.CurrentThread.Name = "main";
 #if DEBUG
             Serilog.Debugging.SelfLog.Enable(msg => System.Diagnostics.Trace.WriteLine(msg));
 #endif
@@ -153,12 +155,17 @@ namespace DinoClipper
                             return inst;
                         })
                         // Worker
+                        .AddSingleton<IDownloaderQueue, DownloaderQueue>()
                         .AddHostedService<Worker>();
                 })
                 .UseSerilog((ctx, services, logConfig) => logConfig
                     .ReadFrom.Configuration(ctx.Configuration)
                     .Enrich.FromLogContext()
+                    .Enrich.WithThreadId()
+                    .Enrich.WithThreadName()
+                    .Enrich.WithProcessId()
+                    .Enrich.WithProcessName()
                     .WriteTo.Console(
-                        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} - {Message:lj}{NewLine}{Exception}"));
+                        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ProcessId}/{ThreadId}_{ThreadName}] {SourceContext} - {Message:lj}{NewLine}{Exception}"));
     }
 }

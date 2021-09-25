@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using DinoClipper.Config;
 using DinoClipper.Storage;
 using Microsoft.Extensions.Logging;
 using NYoutubeDL;
@@ -13,16 +12,13 @@ namespace DinoClipper.Downloader.Tasks
     {
         private readonly ILogger<DownloadClipTask> _logger;
         private readonly YoutubeDL _youtubeDl;
-        private readonly DinoClipperConfiguration _config;
 
         public DownloadClipTask(
             ILogger<DownloadClipTask> logger,
-            YoutubeDL youtubeDl,
-            DinoClipperConfiguration config)
+            YoutubeDL youtubeDl)
         {
             _logger = logger;
             _youtubeDl = youtubeDl;
-            _config = config;
         }
 
         public bool CanRun(DownloaderChainPayload payload)
@@ -33,7 +29,7 @@ namespace DinoClipper.Downloader.Tasks
         public bool Run(DownloaderChainPayload payload)
         {
             Clip clip = payload.Clip;
-            string downloadPath = Path.Combine(_config.TempStorage, $"{clip.Id}.mp4");
+            string downloadPath = Path.Combine(payload.WorkingDirectory, $"{clip.Id}.mp4");
             _logger.LogInformation("Downloading clip {ClipId} to {ClipPath} ...", clip.Id, downloadPath);
             _youtubeDl.Options.FilesystemOptions.Output = downloadPath;
             try

@@ -36,8 +36,7 @@ namespace DinoClipper.Downloader
             _logger.LogDebug("Creating new chain");
             yield return new DownloadClipTask(
                 _serviceProvider.GetRequiredService<ILogger<DownloadClipTask>>(),
-                _serviceProvider.GetRequiredService<YoutubeDL>(),
-                _serviceProvider.GetAppConfig());
+                _serviceProvider.GetRequiredService<YoutubeDL>());
 
             if (_downloaderFlags.UploadOriginal && !_downloaderFlags.SkipUpload)
             {

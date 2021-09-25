@@ -43,6 +43,7 @@ namespace DinoClipper.Config
 
     public class DownloaderFlags
     {
+        public int MaxWorkerThreads { get; set; } = 1;
         public bool UploadOriginal { get; set; }
         public bool SkipUpload { get; set; }
         public bool SkipClearingTempDirectory { get; set; }
