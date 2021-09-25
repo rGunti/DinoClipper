@@ -2,7 +2,7 @@ using PandaDotNet.ChainProcessing;
 
 namespace DinoClipper.Downloader
 {
-    public class DownloaderProcessor : DefaultTaskChainProcessor<DownloaderChainPayload>
+    public class DownloaderProcessor : DefaultAsyncTaskChainProcessor<DownloaderChainPayload>
     {
         public DownloaderProcessor(IDownloaderChain chain) : base(chain)
         {

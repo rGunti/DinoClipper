@@ -12,7 +12,9 @@ using WebDav;
 namespace DinoClipper.Downloader
 {
     public interface IDownloaderChain : ITaskChain<DownloaderChainPayload> { }
-    public interface IDownloaderChainTask : ITask<DownloaderChainPayload> { }
+    public interface IDownloaderChainTaskBase : ITaskBase<DownloaderChainPayload> { }
+    public interface IDownloaderChainTask : IDownloaderChainTaskBase, ITask<DownloaderChainPayload> { }
+    public interface IDownloaderChainAsyncTask : IDownloaderChainTaskBase, IAsyncTask<DownloaderChainPayload> { }
 
     public class DownloaderChain : IDownloaderChain
     {
@@ -29,7 +31,7 @@ namespace DinoClipper.Downloader
             _downloaderFlags = _config.DownloaderFlags;
         }
 
-        public IEnumerable<ITask<DownloaderChainPayload>> GetTasks()
+        public IEnumerable<ITaskBase<DownloaderChainPayload>> GetTasks()
         {
             _logger.LogDebug("Creating new chain");
             yield return new DownloadClipTask(

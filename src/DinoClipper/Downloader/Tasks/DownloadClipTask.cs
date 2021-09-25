@@ -1,9 +1,11 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using DinoClipper.Config;
 using DinoClipper.Storage;
 using Microsoft.Extensions.Logging;
 using NYoutubeDL;
+using PandaDotNet.Time;
 
 namespace DinoClipper.Downloader.Tasks
 {
@@ -36,7 +38,23 @@ namespace DinoClipper.Downloader.Tasks
             _youtubeDl.Options.FilesystemOptions.Output = downloadPath;
             try
             {
-                _youtubeDl.Download(clip.Url);
+                Task task = Task.Run(() =>
+                {
+                    _youtubeDl.Download(clip.Url);
+                });
+                bool done = task.Wait(3.Minutes());
+                if (!done)
+                {
+                    _logger.LogWarning("Clip {ClipId} download has timed out because " +
+                                       "the process did not finish within 3 minutes, will now try to use the file " +
+                                       "available",
+                        clip.Id);
+
+                    if (!File.Exists(downloadPath))
+                    {
+                        throw new TimeoutException($"Clip download {clip.Id} did not finish in time");
+                    }
+                }
                 payload.DownloadedFile = downloadPath;
                 return true;
             }

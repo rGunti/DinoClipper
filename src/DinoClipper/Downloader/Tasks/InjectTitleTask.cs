@@ -13,7 +13,7 @@ using Xabe.FFmpeg.Events;
 
 namespace DinoClipper.Downloader.Tasks
 {
-    public class InjectTitleTask : IDownloaderChainTask
+    public class InjectTitleTask : IDownloaderChainAsyncTask
     {
         private readonly ILogger<InjectTitleTask> _logger;
         private readonly DinoClipperConfiguration _config;
@@ -31,7 +31,7 @@ namespace DinoClipper.Downloader.Tasks
             return payload?.Clip != null && !string.IsNullOrWhiteSpace(payload.DownloadedFile);
         }
 
-        public bool Run(DownloaderChainPayload payload)
+        public async Task<bool> Run(DownloaderChainPayload payload)
         {
             string inputFile = payload.DownloadedFile;
             string outputPath = Path.Combine(_config.TempStorage,
@@ -61,7 +61,9 @@ namespace DinoClipper.Downloader.Tasks
             {
                 _logger.LogDebug("Starting ffmpeg with parameters {FfmpegParameters}",
                     conversion.Build());
-                IConversionResult response = conversion.Start().RunSafeSync();
+                IConversionResult result = await conversion.Start();
+                _logger.LogInformation("Title injection completed, took {ConversionTime}",
+                    result.EndTime - result.StartTime);
             }
             catch (Exception ex)
             {
