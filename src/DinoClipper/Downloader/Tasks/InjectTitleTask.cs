@@ -114,13 +114,13 @@ namespace DinoClipper.Downloader.Tasks
                 .AddParam("fontcolor", FONT_COLOR)
                 .AddFileParam("textfile", $"{clip.CreatedAt:yyyy-MM-dd}", _config.TempStorage);
 
-            // "at"
+            // "by"
             yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
                 .AddParam("x", 255)
                 .AddParam("y", 10)
                 .AddParam("fontsize", 20)
                 .AddParam("fontcolor", FONT_COLOR)
-                .AddParam("text", "'at'");
+                .AddParam("text", "'by'");
             // Clip Creator
             yield return new FilterDefinition("drawtext", BUFFER, BUFFER)
                 .AddParam("x", 285)
