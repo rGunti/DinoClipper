@@ -39,7 +39,7 @@ namespace DinoClipper.Downloader.Tasks
             Clip clip = payload.Clip;
             string originalExtension = Path.GetExtension(payload.DownloadedFile);
             string uploadDir = _isOriginalClip ? "original" : "processed";
-            string fileName = $"{clip.CreatedAt:yyyy-MM-dd}_{clip.Creator?.Name ?? "UnknownUser"}_{clip.Name}.{originalExtension}".MakeSafe();
+            string fileName = $"{clip.CreatedAt:yyyy-MM-dd}_{clip.Creator?.Name ?? "UnknownUser"}_{clip.Id}.{originalExtension}".MakeSafe();
             var uploadUrls = new Uri(_baseUrl, $"{uploadDir}/{fileName}");
 
             try
