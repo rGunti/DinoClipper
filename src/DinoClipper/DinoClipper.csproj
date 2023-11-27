@@ -1,32 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <UserSecretsId>dotnet-DinoClipper-ACAD78AF-1AAA-4641-9B07-C2338EE6F34F</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
         <PackageReference Include="NYoutubeDL" Version="0.11.2" />
-        <PackageReference Include="PandaDotNet.Cache" Version="0.2.1-alpha0029" />
-        <PackageReference Include="PandaDotNet.ChainProcessing" Version="0.2.1-alpha0029" />
-        <PackageReference Include="PandaDotNet.DI.Configuration" Version="0.2.1-alpha0029" />
-        <PackageReference Include="PandaDotNet.Repo.Drivers.LiteDB" Version="0.2.1-alpha0029" />
-        <PackageReference Include="PandaDotNet.Utils" Version="0.2.1-alpha0029" />
-        <PackageReference Include="Serilog" Version="2.10.0" />
-        <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
+        <PackageReference Include="Serilog" Version="3.1.1" />
+        <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
         <PackageReference Include="Serilog.Enrichers.Process" Version="2.0.2" />
         <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
-        <PackageReference Include="Serilog.Extensions.Hosting" Version="4.1.2" />
-        <PackageReference Include="Serilog.Settings.Configuration" Version="3.2.0" />
+        <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+        <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />
         <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
-        <PackageReference Include="Serilog.Sinks.Discord" Version="1.2.0" />
-        <PackageReference Include="Serilog.Sinks.Telegram.Alternative" Version="1.1.0" />
-        <PackageReference Include="TwitchLib.Api" Version="3.2.4" />
-        <PackageReference Include="WebDav.Client" Version="2.7.0" />
-        <PackageReference Include="Xabe.FFmpeg" Version="5.0.2" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="5.0.0" />
+        <PackageReference Include="Serilog.Sinks.Discord" Version="1.2.1" />
+        <PackageReference Include="Serilog.Sinks.Telegram.Alternative" Version="1.4.0" />
+        <PackageReference Include="TwitchLib.Api" Version="3.9.0" />
+        <PackageReference Include="WebDav.Client" Version="2.8.0" />
+        <PackageReference Include="Xabe.FFmpeg" Version="5.2.6" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\lib\pandadotnet\src\PandaDotNet.Cache\PandaDotNet.Cache.csproj" />
+        <ProjectReference Include="..\..\lib\pandadotnet\src\PandaDotNet.ChainProcessing\PandaDotNet.ChainProcessing.csproj" />
+        <ProjectReference Include="..\..\lib\pandadotnet\src\PandaDotNet.DI.Configuration\PandaDotNet.DI.Configuration.csproj" />
+        <ProjectReference Include="..\..\lib\pandadotnet\src\PandaDotNet.Repo.Drivers.LiteDB\PandaDotNet.Repo.Drivers.LiteDB.csproj" />
+        <ProjectReference Include="..\..\lib\pandadotnet\src\PandaDotNet.Utils\PandaDotNet.Utils.csproj" />
     </ItemGroup>
 
     <ItemGroup>

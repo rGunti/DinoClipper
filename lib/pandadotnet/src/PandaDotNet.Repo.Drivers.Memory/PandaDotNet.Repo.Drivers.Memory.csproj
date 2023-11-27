@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\PandaDotNet.Repo\PandaDotNet.Repo.csproj" />
+      <ProjectReference Include="..\PandaDotNet.Utils\PandaDotNet.Utils.csproj" />
+    </ItemGroup>
+
+</Project>

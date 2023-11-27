@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JunitXml.TestLogger" Version="3.0.134" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+        <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
+        <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+        <PackageReference Include="coverlet.collector" Version="6.0.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\PandaDotNet.Cache\PandaDotNet.Cache.csproj" />
+      <ProjectReference Include="..\PandaDotNet.ChainProcessing\PandaDotNet.ChainProcessing.csproj" />
+      <ProjectReference Include="..\PandaDotNet.DI.Configuration\PandaDotNet.DI.Configuration.csproj" />
+      <ProjectReference Include="..\PandaDotNet.Repo.Drivers.EntityFramework\PandaDotNet.Repo.Drivers.EntityFramework.csproj" />
+      <ProjectReference Include="..\PandaDotNet.Repo.Drivers.LiteDB\PandaDotNet.Repo.Drivers.LiteDB.csproj" />
+      <ProjectReference Include="..\PandaDotNet.Repo.Drivers.Memory\PandaDotNet.Repo.Drivers.Memory.csproj" />
+      <ProjectReference Include="..\PandaDotNet.Time\PandaDotNet.Time.csproj" />
+    </ItemGroup>
+
+</Project>
