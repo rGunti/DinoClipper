@@ -21,4 +21,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 RUN mkdir "/data"
+# Declare volumes
+VOLUME ["/data"]
 ENTRYPOINT ["dotnet", "DinoClipper.dll"]
