@@ -32,7 +32,7 @@ build_docker:
         - month_tag=$(date +%Y%m)
         - year_tag=$(date +%Y)
         # Build Image
-        - docker build --pull -t "${CI_REGISTRY_IMAGE}:latest" -t "${CI_REGISTRY_IMAGE}:${exact_tag}" -t "${CI_REGISTRY_IMAGE}:${todays_tag}" -t "${CI_REGISTRY_IMAGE}:${month_tag}" -t "${CI_REGISTRY_IMAGE}:${year_tag}" -f src/DinoClipper/Dockerfile src
+        - docker build --pull -t "${CI_REGISTRY_IMAGE}:latest" -t "${CI_REGISTRY_IMAGE}:${exact_tag}" -t "${CI_REGISTRY_IMAGE}:${todays_tag}" -t "${CI_REGISTRY_IMAGE}:${month_tag}" -t "${CI_REGISTRY_IMAGE}:${year_tag}" -f src/DinoClipper/Dockerfile .
         # Publish all tags
         - docker push "${CI_REGISTRY_IMAGE}:latest"
         - docker push "${CI_REGISTRY_IMAGE}:${exact_tag}"

@@ -31,8 +31,4 @@
         <ProjectReference Include="..\..\lib\pandadotnet\src\PandaDotNet.Repo.Drivers.LiteDB\PandaDotNet.Repo.Drivers.LiteDB.csproj" />
         <ProjectReference Include="..\..\lib\pandadotnet\src\PandaDotNet.Utils\PandaDotNet.Utils.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="data" />
-    </ItemGroup>
 </Project>
