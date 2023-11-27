@@ -25,7 +25,7 @@ public class LocalFileSystemStorageService : IClipStorageService
     public Task<bool> StoreClip(DownloaderChainPayload payload, bool isOriginalClip)
     {
         var clip = payload.Clip;
-        var originalExtension = Path.GetExtension(payload.DownloadedFile);
+        var originalExtension = Path.GetExtension(payload.DownloadedFile)!.Replace(".", "");
         var storageDir = Path.Combine(_storageDir, isOriginalClip ? "original" : "processed");
         var fileName = $"{clip.CreatedAt:yyyy-MM-dd}_{clip.Creator?.Name ?? "UnknownUser"}_{clip.Id}.{originalExtension}".MakeSafe();
         var destinationFilePath = Path.Combine(storageDir, fileName);
