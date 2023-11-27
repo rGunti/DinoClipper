@@ -1,3 +1,5 @@
+using System;
+
 namespace DinoClipper.Config
 {
     public class DinoClipperConfiguration
@@ -10,7 +12,7 @@ namespace DinoClipper.Config
         public bool RestoreCacheFromDatabase { get; set; } = true;
         public string FfmpegPath { get; set; }
         public string YouTubeDlPath { get; set; }
-        public WebDavConfig UploadTarget { get; set; }
+        public StorageConfig UploadTarget { get; set; }
         public DownloaderFlags DownloaderFlags { get; set; } = new();
         public TitleInjectionConfig TitleInjection { get; set; } = new();
     }
@@ -22,11 +24,19 @@ namespace DinoClipper.Config
         public string ChannelId { get; set; }
     }
 
-    public class WebDavConfig
+    public class StorageConfig
     {
+        public StorageType Type { get; set; } = StorageType.LocalFileSystem;
         public string Url { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+    
+    public enum StorageType
+    {
+        [Obsolete("WebDAV storage is considered obsolete and will no longer be maintained")]
+        WebDav,
+        LocalFileSystem
     }
 
     public class TitleInjectionConfig

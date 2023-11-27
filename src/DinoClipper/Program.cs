@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Threading;
+using DinoClipper.ClipStorage;
 using DinoClipper.Config;
 using DinoClipper.Downloader;
 using DinoClipper.Exceptions;
@@ -72,7 +73,7 @@ namespace DinoClipper
                     services
                         // Configuration
                         .AddConfigObject<DinoClipperConfiguration>("DinoClipper")
-                        .AddSingleton<WebDavConfig>(s => s.GetAppConfig().UploadTarget)
+                        .AddSingleton<StorageConfig>(s => s.GetAppConfig().UploadTarget)
                         .AddSingleton<TwitchConfig>(s => s.GetAppConfig().Twitch)
                         // Storage
                         .AddLiteDbDriver(hostContext.Configuration.GetConnectionString("litedb"))
@@ -116,7 +117,7 @@ namespace DinoClipper
                         // WebDav
                         .AddTransient<WebDavClientParams>(s =>
                         {
-                            var cfg = s.GetRequiredService<WebDavConfig>();
+                            var cfg = s.GetRequiredService<StorageConfig>();
                             var inst = new WebDavClientParams
                             {
                                 BaseAddress = new Uri(cfg.Url),
@@ -126,6 +127,21 @@ namespace DinoClipper
                         })
                         .AddTransient<IWebDavClient>(s =>
                             new WebDavClient(s.GetRequiredService<WebDavClientParams>()))
+                        .AddSingleton<IClipStorageService>(s =>
+                        {
+                            var cfg = s.GetRequiredService<StorageConfig>();
+                            return cfg.Type switch
+                            {
+                                StorageType.LocalFileSystem => new LocalFileSystemStorageService(
+                                    s.GetRequiredService<ILogger<LocalFileSystemStorageService>>(),
+                                    cfg.Url),
+                                StorageType.WebDav => new WebDavClipStorageService(
+                                    s.GetRequiredService<ILogger<WebDavClipStorageService>>(),
+                                    s.GetRequiredService<IWebDavClient>(),
+                                    new Uri(cfg.Url)),
+                                _ => throw new ArgumentOutOfRangeException(nameof(cfg.Type))
+                            };
+                        })
                         // APIs
                         .AddSingleton<IUserApi, UserApi>()
                         .AddSingleton<IGameApi, GameApi>()

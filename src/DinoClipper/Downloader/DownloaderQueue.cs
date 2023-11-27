@@ -142,9 +142,16 @@ namespace DinoClipper.Downloader
             while (!_workerThreadPool.TryDequeue(out workerThread))
             {
                 _logger.LogTrace("No worker thread available, waiting a moment ...");
-                await Task.Delay(1.Second(), _cancellationToken);
-                if (_cancellationToken.IsCancellationRequested)
-                    return null;
+                try
+                {
+                    await Task.Delay(1.Second(), _cancellationToken);
+                    if (_cancellationToken.IsCancellationRequested)
+                        return null;
+                }
+                catch (TaskCanceledException)
+                {
+                    // ignored
+                }
                 MoveZombiesToGraveyard();
             }
 
