@@ -1,0 +1,30 @@
+name: "Release Image"
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-docker:
+    name: "Build & Test Project"
+    runs-on: ubuntu-latest
+    steps:
+      # Setup Environment
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      # Checkout Code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      # Build Image
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: '.'
+          file: 'src/DinoClipper/Dockerfile'
+          push: true
+          platforms: linux/amd64
+          tags: 'ghcr.io/rgunti/dinoclipper:main'
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
