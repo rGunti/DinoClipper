@@ -30,7 +30,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
       # Build Image
-      - name: Build and push branch image (${{ env.GITHUB_REF_NAME }}-${{ matrix.platform }})
+      - name: Build and push branch image (${{ vars.GITHUB_REF_NAME }}-${{ matrix.platform }})
         id: build
         uses: docker/build-push-action@v5
         with:
@@ -38,6 +38,6 @@ jobs:
           file: src/DinoClipper/Dockerfile
           push: true
           platforms: linux/${{ matrix.platform }}
-          tags: ghcr.io/rgunti/dinoclipper:${{ env.GITHUB_REF_NAME }}-${{ matrix.platform }}
+          tags: ghcr.io/rgunti/dinoclipper:${{ vars.GITHUB_REF_NAME }}-${{ matrix.platform }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
