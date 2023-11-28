@@ -22,4 +22,10 @@ COPY --from=publish /app/publish .
 RUN mkdir "/data"
 # Declare volumes
 VOLUME ["/data"]
+
+# Labels
+LABEL org.opencontainers.image.source="https://github.com/rGunti/DinoClipper"
+LABEL org.opencontainers.image.description="DinoClipper is a .NET written, Docker-targeting, Twitch Clip downloading background service"
+LABEL org.opencontainers.image.licenses=MIT
+
 CMD ["dotnet", "DinoClipper.dll"]
