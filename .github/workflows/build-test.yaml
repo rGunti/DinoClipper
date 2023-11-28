@@ -19,8 +19,8 @@ jobs:
           dotnet-version: 8.x
       - name: Restore dependencies
         run: |
-          dotnet restore src/DinoClipper/DinoClipper.sln
+          dotnet restore src/DinoClipper.sln
       - name: Build
-        run: dotnet build --no-restore src/DinoClipper/DinoClipper.sln
+        run: dotnet build --no-restore src/DinoClipper.sln
       - name: Test
-        run: dotnet test --no-restore --no-build src/DinoClipper/DinoClipper.sln
+        run: dotnet test --no-restore --no-build src/DinoClipper.sln
