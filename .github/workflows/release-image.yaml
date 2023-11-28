@@ -55,6 +55,9 @@ jobs:
           file: src/DinoClipper/Dockerfile
           push: true
           platforms: linux/${{ matrix.platform.arch }}
-          tags: ghcr.io/rgunti/dinoclipper:${{ github.ref_name }}-${{ matrix.platform.tag }}
+          tags: |
+            ghcr.io/rgunti/dinoclipper:${{ github.ref_name }}-${{ matrix.platform.tag }}
+            ghcr.io/rgunti/dinoclipper:${{ github.ref_name }}
+            ghcr.io/rgunti/dinoclipper:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
