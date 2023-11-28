@@ -18,9 +18,6 @@ jobs:
           - arch: arm64
             tag: arm64
             dotnet_arch: linux-arm64
-          - arch: arm/v7
-            tag: arm-v7
-            dotnet_arch: linux-arm
     steps:
       # Setup Environment
       - name: Set up QEMU
