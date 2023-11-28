@@ -12,9 +12,12 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - amd64
-          - arm64
-          - arm/v7
+          - arch: amd64
+            tag: amd64
+          - arch: arm64
+            tag: arm64
+          - arch: arm/v7
+            tag: arm-v7
     steps:
       # Setup Environment
       - name: Set up QEMU
@@ -31,14 +34,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
       # Build Image
-      - name: Build and push branch image (${{ github.ref_name }}-${{ matrix.platform }})
+      - name: Build and push branch image (${{ github.ref_name }}-${{ matrix.platform.tag }})
         id: build
         uses: docker/build-push-action@v5
         with:
           context: .
           file: src/DinoClipper/Dockerfile
           push: true
-          platforms: linux/${{ matrix.platform }}
-          tags: ghcr.io/rgunti/dinoclipper:${{ github.ref_name }}-${{ matrix.platform }}
+          platforms: linux/${{ matrix.platform.arch }}
+          tags: ghcr.io/rgunti/dinoclipper:${{ github.ref_name }}-${{ matrix.platform.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
