@@ -1,0 +1,26 @@
+name: "Build & Test"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: "Build & Test Project"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 8.x
+      - name: Restore dependencies
+        run: |
+          dotnet restore src/DinoClipper/DinoClipper.sln
+      - name: Build
+        run: dotnet build --no-restore src/DinoClipper/DinoClipper.sln
+      - name: Test
+        run: dotnet test --no-restore --no-build src/DinoClipper/DinoClipper.sln
