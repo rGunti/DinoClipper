@@ -31,6 +31,6 @@ jobs:
           file: 'src/DinoClipper/Dockerfile'
           push: true
           platforms: linux/amd64
-          tags: 'ghcr.io/rgunti/dinoclipper:main'
+          tags: 'ghcr.io/rgunti/dinoclipper/dinoclipper:main'
           cache-from: type=gha
           cache-to: type=gha,mode=max
