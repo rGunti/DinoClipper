@@ -48,7 +48,7 @@ jobs:
       - name: Publish Build
         run: dotnet publish --no-restore -c Release -o ./out -r ${{ matrix.platform.dotnet_arch }} src/DinoClipper/DinoClipper.csproj
       - name: Generate a build timestamp
-        run: echo $(date +%Y.%m.%d-%H.%M.%S) > ./out/build-timestamp.txt
+        run: echo $(date +%Y.%m.%d-%H.%M.%S),${{ matrix.platform.dotnet_arch }} > ./out/build-timestamp.txt
       # Build Image
       - name: Build and push branch image (${{ github.ref_name }}-${{ matrix.platform.tag }})
         id: build
