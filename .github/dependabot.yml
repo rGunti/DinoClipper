@@ -1,0 +1,39 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      # Core Packages (Microsoft. / System.) shall be grouped together
+      core-packages:
+        patterns:
+          - "Microsoft.*"
+          - "System.*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Serilog packages shall be grouped together
+      serilog:
+        patterns:
+          - "Serilog"
+          - "Serilog.*"
+    ignore:
+      # Ignore all major updates for the Microsoft.* packages
+      - dependency-name: "Microsoft.*"
+        update-types:
+          - "version-update:semver-major"
+      # Ignore all major updates for the System.* packages
+      - dependency-name: "System.*"
+        update-types:
+          - "version-update:semver-major"
+
+  - package-ecosystem: docker
+    directory: "/src/DinoClipper"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # No major dotnet updates
+      - dependency-name: "mcr.microsoft.com/dotnet/*"
+        update-types:
+          - "version-update:semver-major"
