@@ -14,10 +14,13 @@ jobs:
         platform:
           - arch: amd64
             tag: amd64
+            dotnet_arch: linux-x64
           - arch: arm64
             tag: arm64
+            dotnet_arch: linux-arm64
           - arch: arm/v7
             tag: arm-v7
+            dotnet_arch: linux-arm
     steps:
       # Setup Environment
       - name: Set up QEMU
@@ -30,9 +33,22 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 8.x
       # Checkout Code
       - name: Checkout Code
         uses: actions/checkout@v3
+      # Build app locally
+      - name: Restore dependencies
+        run: dotnet restore -r ${{ matrix.platform.dotnet_arch }} src/DinoClipper.sln
+      - name: Build
+        run: dotnet build --no-restore -c Release -r ${{ matrix.platform.dotnet_arch }} src/DinoClipper/DinoClipper.csproj
+      - name: Publish Build
+        run: dotnet publish --no-restore -c Release -o ./out -r ${{ matrix.platform.dotnet_arch }} src/DinoClipper/DinoClipper.csproj
+      - name: Generate a build timestamp
+        run: echo $(date +%Y.%m.%d-%H.%M.%S) > ./out/build-timestamp.txt
       # Build Image
       - name: Build and push branch image (${{ github.ref_name }}-${{ matrix.platform.tag }})
         id: build
