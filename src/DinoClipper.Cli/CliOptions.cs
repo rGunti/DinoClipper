@@ -19,3 +19,12 @@ public class GetLatestChannelOptions : ChannelScopedCommandOptions;
 
 [Verb("get-clips", HelpText = "Get all clips for a channel.")]
 public class GetChannelsOptions : ChannelScopedCommandOptions;
+
+public abstract class ClipScopedCommandOptions : ChannelScopedCommandOptions
+{
+    [Option('i', "clip-id", Required = true, HelpText = "The clip ID to get the clip for.")]
+    public string ClipId { get; set; } = string.Empty;
+}
+
+[Verb("delete-clip", HelpText = "Delete a clip.")]
+public class DeleteClipOptions : ClipScopedCommandOptions;

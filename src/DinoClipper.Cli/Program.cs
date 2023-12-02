@@ -2,7 +2,7 @@
 using ConsoleTables;
 using DinoClipper.Cli;
 
-Parser.Default.ParseArguments<GetLatestChannelOptions, GetChannelsOptions>(args)
+Parser.Default.ParseArguments<GetLatestChannelOptions, GetChannelsOptions, DeleteClipOptions>(args)
     .WithParsed<GetLatestChannelOptions>(o =>
     {
         var clipRepository = CommandHandling.GetClipRepository(o);
@@ -59,4 +59,20 @@ Parser.Default.ParseArguments<GetLatestChannelOptions, GetChannelsOptions>(args)
         }
 
         table.Write(Format.Minimal);
+    })
+    .WithParsed<DeleteClipOptions>(o =>
+    {
+        var clipRepository = CommandHandling.GetClipRepository(o);
+        var clip = clipRepository.All
+            .FirstOrDefault(c => c.Id == o.ClipId && c.Broadcaster.Id == $"{o.ChannelId}");
+
+        if (clip == null)
+        {
+            Console.Error.WriteLine($"Clip {o.ClipId} not found for channel {o.ChannelId}");
+            Environment.Exit(0x20);
+            return;
+        }
+        
+        clipRepository.Delete(clip);
+        Console.Out.WriteLine($"Deleted clip {o.ClipId} for channel {o.ChannelId}");
     });
