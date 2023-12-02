@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PandaDotNet.Utils", "..\lib
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PandaDotNet.Time", "..\lib\pandadotnet\src\PandaDotNet.Time\PandaDotNet.Time.csproj", "{FDD060CD-2C61-4580-A089-E6651D327BA2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DinoClipper.Cli", "DinoClipper.Cli\DinoClipper.Cli.csproj", "{2785A719-90D8-4134-BCF7-83A41823B587}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{FDD060CD-2C61-4580-A089-E6651D327BA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDD060CD-2C61-4580-A089-E6651D327BA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDD060CD-2C61-4580-A089-E6651D327BA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2785A719-90D8-4134-BCF7-83A41823B587}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2785A719-90D8-4134-BCF7-83A41823B587}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2785A719-90D8-4134-BCF7-83A41823B587}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2785A719-90D8-4134-BCF7-83A41823B587}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{FC89F522-E0F0-42F8-9E82-DA2B83AA53EE} = {938E15C6-3DA3-4E6B-ACB9-5F65D7BE16EF}
