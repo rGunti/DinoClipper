@@ -18,7 +18,7 @@
         <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
         <PackageReference Include="Serilog.Sinks.Discord" Version="1.2.1" />
-        <PackageReference Include="Serilog.Sinks.Telegram.Alternative" Version="1.4.0" />
+        <PackageReference Include="Serilog.Sinks.Telegram.Alternative" Version="1.4.1" />
         <PackageReference Include="TwitchLib.Api" Version="3.9.0" />
         <PackageReference Include="WebDav.Client" Version="2.8.0" />
         <PackageReference Include="Xabe.FFmpeg" Version="5.2.6" />
