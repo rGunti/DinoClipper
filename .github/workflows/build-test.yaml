@@ -15,6 +15,12 @@ jobs:
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 8.x
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          build-mode: manual
+          config-file: ./.github/codeql/codeql-config.yml
       - name: Restore dependencies
         run: |
           dotnet restore src/DinoClipper.sln
@@ -22,3 +28,7 @@ jobs:
         run: dotnet build --no-restore src/DinoClipper.sln
       - name: Test
         run: dotnet test --no-restore --no-build src/DinoClipper.sln
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:csharp"
