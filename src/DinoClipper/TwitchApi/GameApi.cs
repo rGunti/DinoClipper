@@ -42,7 +42,7 @@ namespace DinoClipper.TwitchApi
         {
             _logger.LogTrace("Getting game #{TwitchGameId} from Twitch API", gameId);
             GetGamesResponse gameResponse = await _twitchAPI.Helix.Games.GetGamesAsync(new List<string> { gameId });
-            TwitchLib.Api.Helix.Models.Games.Game game = gameResponse.Games.FirstOrDefault();
+            TwitchLib.Api.Helix.Models.Games.Game game = gameResponse.Data.FirstOrDefault();
             return game != null ? ConvertToGame(game) : null;
         }
 
